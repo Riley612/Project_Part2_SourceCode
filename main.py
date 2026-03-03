@@ -145,10 +145,10 @@ def predict_label_for_video(test_video_path: str, train_embeddings: dict):
 
 # Main program
 if __name__ == "__main__":
-    #Build training library
+    # Build training library
     train_lib = build_train_library("traindata")
 
-    #Label -> integer mapping for Results.csv
+    # Label -> integer mapping for Results.csv
     label_map = {
         "0": 0, "1": 1, "2": 2, "3": 3, "4": 4,
         "5": 5, "6": 6, "7": 7, "8": 8, "9": 9,
@@ -162,25 +162,25 @@ if __name__ == "__main__":
     }
 
     # Collecting test videos (dedupe + stable sort)
-test_dir = Path("test")
-patterns = ("*.mp4", "*.mov", "*.avi", "*.m4v", "*.mkv")
+    test_dir = Path("test")
+    patterns = ("*.mp4", "*.mov", "*.avi", "*.m4v", "*.mkv")
 
-test_set = set()
-for pat in patterns:
-    for p in test_dir.rglob(pat):
-        test_set.add(p.resolve())   # <-- resolve() helps avoid duplicates
+    test_set = set()
+    for pat in patterns:
+        for p in test_dir.rglob(pat):
+            test_set.add(p.resolve())
 
-test_videos = sorted(test_set)
+    test_videos = sorted(test_set)
 
-print("Found test videos:", len(test_videos))
-if len(test_videos) != 51:
-    print("Expected 51 test videos, found", len(test_videos))
+    print("Found test videos:", len(test_videos))
+    if len(test_videos) != 51:
+        print("Expected 51 test videos, found", len(test_videos))
 
-    #Predict for each test video/store results
+    # Predict for each test video/store results
     results = []
     print("\n--- Predictions ---")
 
-    for tv in sorted(test_videos):
+    for tv in test_videos:
         pred_label, score = predict_label_for_video(str(tv), train_lib)
         print(f"{tv.name} -> {pred_label} (cosine={score:.4f})")
 
@@ -189,9 +189,14 @@ if len(test_videos) != 51:
 
         results.append(label_map[pred_label])
 
-# Write Results.csv (one integer per line, no blank lines)
-with open("Results.csv", "w", newline="\n") as f:
-    for v in results:
-        f.write(f"{int(v)}\n")
+    # Deelting any old Results.csv before writing a new one
+    import os
+    if os.path.exists("Results.csv"):
+        os.remove("Results.csv")
 
-print(f"\nWrote Results.csv with {len(results)} rows.")
+    # Write Results.csv (one integer per line, no header)
+    with open("Results.csv", "w", newline="\n") as f:
+        for v in results:
+            f.write(f"{int(v)}\n")
+
+    print(f"\nWrote Results.csv with {len(results)} rows.")
