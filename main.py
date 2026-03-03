@@ -161,16 +161,20 @@ if __name__ == "__main__":
         "SetThermo": 16
     }
 
-    #Collecting test videos
-    test_dir = Path("test")
-    patterns = ("*.mp4", "*.mov", "*.avi", "*.m4v", "*.mkv")
+    # Collecting test videos (dedupe + stable sort)
+test_dir = Path("test")
+patterns = ("*.mp4", "*.mov", "*.avi", "*.m4v", "*.mkv")
 
-    test_videos = []
-    for pat in patterns:
-        test_videos.extend(test_dir.rglob(pat))
+test_set = set()
+for pat in patterns:
+    for p in test_dir.rglob(pat):
+        test_set.add(p.resolve())   # <-- resolve() helps avoid duplicates
 
-    if not test_videos:
-        raise RuntimeError(f"No test videos found in {test_dir.resolve()}")
+test_videos = sorted(test_set)
+
+print("Found test videos:", len(test_videos))
+if len(test_videos) != 51:
+    print("Expected 51 test videos, found", len(test_videos))
 
     #Predict for each test video/store results
     results = []
@@ -185,6 +189,9 @@ if __name__ == "__main__":
 
         results.append(label_map[pred_label])
 
-    #Write Results.csv
-    np.savetxt("Results.csv", results, fmt="%d")
-    print(f"\nWrote Results.csv with {len(results)} rows.")
+# Write Results.csv (one integer per line, no blank lines)
+with open("Results.csv", "w", newline="\n") as f:
+    for v in results:
+        f.write(f"{int(v)}\n")
+
+print(f"\nWrote Results.csv with {len(results)} rows.")
