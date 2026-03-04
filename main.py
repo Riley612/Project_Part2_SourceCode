@@ -161,20 +161,25 @@ if __name__ == "__main__":
         "SetThermo": 16
     }
 
-    # Collecting test videos (dedupe + stable sort)
+    # Collecting test videos (ONLY the files directly inside /test)
     test_dir = Path("test")
     patterns = ("*.mp4", "*.mov", "*.avi", "*.m4v", "*.mkv")
 
-    test_set = set()
+    test_videos = []
     for pat in patterns:
-        for p in test_dir.rglob(pat):
-            test_set.add(p.resolve())
+        test_videos.extend(sorted(test_dir.glob(pat)))  # <-- NOT rglob
 
-    test_videos = sorted(test_set)
+    # De-dupe just in case (same file matched twice somehow)
+    test_videos = sorted({p.resolve() for p in test_videos})
 
     print("Found test videos:", len(test_videos))
+
+    # Hard requirement for the autograder
     if len(test_videos) != 51:
-        print("Expected 51 test videos, found", len(test_videos))
+        raise RuntimeError(
+            f"Expected 51 test videos directly under {test_dir.resolve()}, found {len(test_videos)}.\n"
+            f"Example files: {[p.name for p in test_videos[:10]]}"
+        )
 
     # Predict for each test video/store results
     results = []
