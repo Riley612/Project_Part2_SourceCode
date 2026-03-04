@@ -173,23 +173,18 @@ if __name__ == "__main__":
     test_videos = sorted(set(p.resolve() for p in test_videos))
     print("Found test videos before filtering:", len(test_videos))
 
-    # filtering 
-    import re
+   # Filtering
+test_videos = [p for p in test_videos if "-H-" in p.name]
 
-    filtered = []
-    for p in test_videos:
-        m = re.search(r"-(\d+)\.(mp4|mov|avi|m4v|mkv)$", p.name, re.IGNORECASE)
-        if m and (int(m.group(1)) % 2 == 0):   # keep even-indexed ones
-            filtered.append(p)
+test_videos = sorted(test_videos)
 
-    test_videos = sorted(filtered)
-    print("Found test videos after filtering:", len(test_videos))
+print("Found test videos after filtering:", len(test_videos))
 
-    if len(test_videos) != 51:
-        raise RuntimeError(
-            f"Expected 51 test videos after filtering, found {len(test_videos)}.\n"
-            f"Example files: {[p.name for p in test_videos[:10]]}"
-        )
+if len(test_videos) != 51:
+    raise RuntimeError(
+        f"Expected 51 test videos after filtering, found {len(test_videos)}.\n"
+        f"Example files: {[p.name for p in test_videos[:10]]}"
+    )
 
     # Predict for each test video/store results
     results = []
